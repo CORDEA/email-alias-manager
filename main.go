@@ -16,13 +16,13 @@ import (
 )
 
 func main() {
-	list := flag.Bool("l", false, "List aliases")
-	alias := flag.String("a", "", "Add alias")
+	listOpt := flag.Bool("l", false, "List aliases")
+	aliasOpt := flag.String("a", "", "Add alias")
 	flag.Parse()
 	if flag.NArg() <= 0 {
 		log.Fatalln("User key is required")
 	}
-	if !*list && len(*alias) <= 0 {
+	if !*listOpt && len(*aliasOpt) <= 0 {
 		log.Fatalln("Received illegal option")
 	}
 	key := flag.Arg(0)
@@ -43,20 +43,26 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if *list {
+	if *listOpt {
 		response, err := listAliases(service, key)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		log.Println(response.Aliases)
+
+		fmt.Println("Current aliases.")
+		for _, a := range response.Aliases {
+			alias := a.(admin.Alias)
+			fmt.Printf("%s - %s\n", alias.Alias, alias.PrimaryEmail)
+		}
 		return
 	}
 
-	response, err := addAlias(service, key, *alias)
+	response, err := addAlias(service, key, *aliasOpt)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log.Println(response.Alias)
+	fmt.Println("Added new alias.")
+	fmt.Println(response.Alias)
 }
 
 func authorize(ctx context.Context, secret []byte) (*http.Client, error) {
