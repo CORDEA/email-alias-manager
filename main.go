@@ -7,6 +7,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	admin "google.golang.org/api/admin/directory/v1"
+	"google.golang.org/api/option"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -37,8 +38,19 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	_ = client
-	_ = key
+	service, err := admin.NewService(ctx, option.WithHTTPClient(client))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if *list {
+		response, err := listAliases(service, key)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		log.Println(response.Aliases)
+		return
+	}
 }
 
 func authorize(ctx context.Context, secret []byte) (*http.Client, error) {
@@ -67,4 +79,9 @@ func generateState() string {
 		state += fmt.Sprintf("%c", rand.Intn(26)+97)
 	}
 	return state
+}
+
+func listAliases(service *admin.Service, key string) (*admin.Aliases, error) {
+	call := service.Users.Aliases.List(key)
+	return call.Do()
 }
