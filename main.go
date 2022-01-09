@@ -51,6 +51,12 @@ func main() {
 		log.Println(response.Aliases)
 		return
 	}
+
+	response, err := addAlias(service, key, *alias)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Println(response.Alias)
 }
 
 func authorize(ctx context.Context, secret []byte) (*http.Client, error) {
@@ -83,5 +89,13 @@ func generateState() string {
 
 func listAliases(service *admin.Service, key string) (*admin.Aliases, error) {
 	call := service.Users.Aliases.List(key)
+	return call.Do()
+}
+
+func addAlias(service *admin.Service, key string, alias string) (*admin.Alias, error) {
+	a := admin.Alias{
+		Alias: alias,
+	}
+	call := service.Users.Aliases.Insert(key, &a)
 	return call.Do()
 }
